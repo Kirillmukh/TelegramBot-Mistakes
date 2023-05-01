@@ -6,7 +6,7 @@ cancel_accept = "Отменено"
 input_step_1 = "Введите категорию" + cancel
 input_step_2 = "Введите слово или вопрос" + cancel
 input_step_3 = "Введите ответ" + cancel
-input_step_4 = "Хотите добавить описание?" + cancel
+input_step_4 = "Хотите добавить описание?"
 input_step_5 = "Введите описание" + cancel
 input_step_6 = "Все успешно введено"
 
@@ -23,13 +23,17 @@ input_words = "Сперва введите слова, /input"
 game_started = "Игра началась, категория "
 game_ended = "Игра закончена"
 game_accept = "Верно"
-game_except = "Неверно"
+game_except = "Неверно, ответ: "
 game_reset_list_1 = 'Слова из категории "'
 game_reset_list_2 = '" обновлены'
 
+description = "Описание: "
+categories = "Ваши категории:"
 empty_list = "Cписок пуст"
 
 markup_add_another = "Добавить еще"
 markup_delete = "Убрать историю"
+markup_yes = "Да"
+markup_no = "Нет"
 
 not_in_use = "Я не понимаю, может / команда поможет мне)"
