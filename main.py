@@ -7,10 +7,11 @@ import texts
 import database
 
 bot = telebot.TeleBot(TOKEN.token)
-item = types.InlineKeyboardButton(text="Убрать", callback_data="Убрать")
+item = types.InlineKeyboardButton(text=texts.markup_delete, callback_data=texts.markup_delete)
 delete_markup = types.InlineKeyboardMarkup().add(item)
-description_markup = types.InlineKeyboardMarkup().add(types.InlineKeyboardButton(text="Да", callback_data="Да")) \
-    .add(types.InlineKeyboardButton(text="Нет", callback_data="Нет"))
+description_markup = types.InlineKeyboardMarkup()\
+    .add(types.InlineKeyboardButton(text=texts.markup_yes, callback_data=texts.markup_yes)) \
+    .add(types.InlineKeyboardButton(text=texts.markup_no, callback_data=texts.markup_no))
 delete_and_input_markup = types.InlineKeyboardMarkup().add(item, types.InlineKeyboardButton(
     text=texts.markup_add_another, callback_data=texts.markup_add_another))
 
@@ -119,7 +120,8 @@ def show_list(message):
 def types(message):
     functions.ap(message)
     if data := database.get_category(message.chat.id):
-        functions.ap(bot.send_message(message.chat.id, "Ваши категории:\n" + "\n".join(data)))
+        functions.ap(bot.send_message(message.chat.id, texts.categories + "\n " + "\n ".join(data),
+                                      reply_markup=delete_markup))
     else:
         functions.ap(bot.send_message(message.chat.id, texts.empty_list))
 
@@ -138,7 +140,7 @@ def gameStep1(message):
             functions.try_login(message).is_game = True
             word = functions.try_login(message).game_list.pop(0)
             functions.try_login(message).last_message_text = word
-            msg = bot.send_message(message.chat.id, texts.game_started + '"' + message.text + '"' + '\n' + word)
+            msg = bot.send_message(message.chat.id, texts.game_started + '"' + message.text + '"' + '\n\n' + word)
         else:
             msg = bot.send_message(message.chat.id, texts.input_words)
     else:
@@ -154,29 +156,29 @@ def stop(message):
 
 @bot.message_handler(content_types=['text'])
 def text(message):
-    try:
-        user = functions.try_login(message)
-        if user.is_game:
-            if message.text == user.answers[user.last_message_text]:
-                string = texts.game_accept
-            else:
-                string = texts.game_except
-            if not user.game_list:
-                functions.restart_game(message)
-                string += "\n" + texts.game_reset_list_1 + user.game_category + texts.game_reset_list_2
-            word = user.game_list.pop(0)
-            user.last_message_text = word
-            functions.ap(bot.send_message(message.chat.id, string + '\n' + word))
+    user = functions.try_login(message)
+    if user.is_game:
+        answer, description = user.answers[user.last_message_text]
+        if message.text == answer:
+            string = texts.game_accept
         else:
-            functions.ap(bot.send_message(message.chat.id, texts.not_in_use, reply_markup=delete_markup))
-    except Exception as e:
-        print(e)
+            string = texts.game_except + answer
+        if description != "None":
+            string += "\n" + texts.description + description
+        if not user.game_list:
+            functions.restart_game(message)
+            string += "\n" + texts.game_reset_list_1 + user.game_category + texts.game_reset_list_2
+        word = user.game_list.pop(0)
+        user.last_message_text = word
+        functions.ap(bot.send_message(message.chat.id, string + '\n\n' + word))
+    else:
+        functions.ap(bot.send_message(message.chat.id, texts.not_in_use, reply_markup=delete_markup))
 
 
 @bot.callback_query_handler(func=lambda x: True)
 def callback(call):
     match call.data:
-        case "Убрать":
+        case texts.markup_delete:
             try:
                 for i in functions.try_login(call.message).delete_list:
                     bot.delete_message(call.message.chat.id, i)
@@ -187,17 +189,17 @@ def callback(call):
             except:
                 pass
             functions.try_login(call.message).delete_list.clear()
-        case "Да":
+        case texts.markup_yes:
             bot.register_next_step_handler(msg := (bot.send_message(call.message.chat.id, texts.input_step_5)),
                                            inputStep4)
             functions.ap(msg)
-        case "Нет":
+        case texts.markup_no:
             functions.insert(call.message, "None", True)
             functions.ap(bot.send_message(call.message.chat.id, texts.input_step_6,
                                           reply_markup=delete_and_input_markup))
         case texts.markup_add_another:
             _input(call.message)
-    if call.data in ["Да", "Нет", texts.markup_add_another]:
+    if call.data in [texts.markup_yes, texts.markup_no, texts.markup_add_another]:
         bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id)
 
 
