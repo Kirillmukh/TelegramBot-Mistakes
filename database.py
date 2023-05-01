@@ -25,13 +25,17 @@ def connect(func, *args, **kwargs):
             sql.execute(f"DELETE FROM data WHERE type = '{category}' and word = '{word}'")
             db.commit()
 
-
         match func:
-            case "start": start(*args, **kwargs)
-            case "insert": insert(*args, **kwargs)
-            case "get_category": get_category(*args, **kwargs)
-            case "get_words": get_words(*args, **kwargs)
-            case "delete_string": delete_string(*args, **kwargs)
+            case "start":
+                start(*args, **kwargs)
+            case "insert":
+                insert(*args, **kwargs)
+            case "get_category":
+                get_category(*args, **kwargs)
+            case "get_words":
+                get_words(*args, **kwargs)
+            case "delete_string":
+                delete_string(*args, **kwargs)
     db.close()
 
 
@@ -65,8 +69,13 @@ def get_all(chat_id: int) -> list:
     words = []
     with db:
         sql = db.cursor()
-        for i in sql.execute(f"SELECT word, answer, type FROM data WHERE id = {chat_id} ORDER BY type ASC"):
-            words.append(i)
+        for i in sql.execute(f"SELECT word, answer, description, type FROM data WHERE id = {chat_id} ORDER BY type ASC"):
+            if i[2] == "None":
+                temp = list(i)
+                temp.remove(i[2])
+                words.append(tuple(temp))
+            else:
+                words.append(i)
     db.close()
     return words
 
@@ -76,7 +85,8 @@ def get_words_by_category(chat_id, category):
     words = dict()
     with db:
         sql = db.cursor()
-        for word, answer in sql.execute(f"SELECT word, answer FROM data WHERE id = {chat_id} AND type = '{category}'"):
-            words[word] = answer
+        for word, answer, description in sql.execute(f"SELECT word, answer, description FROM data WHERE id = {chat_id} "
+                                                     f"AND type = '{category}'"):
+            words[word] = (answer, description)
     db.close()
     return words
