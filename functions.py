@@ -62,18 +62,25 @@ def get_list(chat_id):
         if len(data[i]) == 3:
             word, answer, category = data[i]
             temp = f"{count}. {word} - {answer} [{category}]\n"
-        if len(data[i]) == len(data[i + 1]):
+        elif len(data[i]) == 4:
+            word, answer, description, category = data[i]
+            temp = f"{count}. {word} - {answer} [{category}]\n{texts.description}{description}\n"
+        if len(data[i]) >= 3 and len(data[i + 1]) >= 3:
             if data[i][-1] != data[i + 1][-1]:
                 count = 1
             else:
                 count += 1
-        if len(data[i]) != 3: count = 1
+        if len(data[i]) < 3: count = 1
         if temp: data[i] = temp
     if data:
-        word, answer, category = data[-1]
-        data[-1] = f"{count}. {word} - {answer} [{category}]\n"
-    strings, index = [[]], 0
+        if len(data[-1]) == 3:
+            word, answer, category = data[-1]
+            data[-1] = f"{count}. {word} - {answer} [{category}]\n"
+        elif len(data[-1]) == 4:
+            word, answer, description, category = data[-1]
+            data[-1] = f"{count}. {word} - {answer} [{category}]\n{texts.description}{description}\n"
 
+    strings, index = [[]], 0
     while data:
         while len(strings[index]) < 100 and data:
             if data:
